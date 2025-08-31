@@ -10,9 +10,9 @@ import (
 )
 
 const (
-	serviceName        = "GoAgent"
-	serviceDisplayName = "Go Agent Service"
-	serviceDescription = "Go Agent 自启动服务"
+	serviceName        = "DHAgent"
+	serviceDisplayName = "DH Agent Service"
+	serviceDescription = "DH Agent 自启动服务"
 )
 
 func installWindowsService() error {
@@ -70,6 +70,93 @@ func stopWindowsService() error {
 		return fmt.Errorf("停止服务失败: %v, 输出: %s", err, output)
 	}
 	return nil
+}
+
+// getServiceStatus 获取Windows服务状态
+func getServiceStatus() (string, error) {
+	cmd := exec.Command("sc", "query", serviceName)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		// 如果服务不存在，sc query会返回错误
+		return "未安装", nil
+	}
+
+	outputStr := string(output)
+
+	// 解析服务状态
+	if contains(outputStr, "RUNNING") {
+		return "运行中", nil
+	} else if contains(outputStr, "STOPPED") {
+		return "已停止", nil
+	} else if contains(outputStr, "START_PENDING") {
+		return "启动中", nil
+	} else if contains(outputStr, "STOP_PENDING") {
+		return "停止中", nil
+	} else if contains(outputStr, "PAUSED") {
+		return "已暂停", nil
+	} else {
+		return "未知状态", nil
+	}
+}
+
+// getServiceDetails 获取服务详细信息
+func getServiceDetails() (map[string]string, error) {
+	details := make(map[string]string)
+
+	// 获取服务配置信息
+	cmd := exec.Command("sc", "qc", serviceName)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return details, fmt.Errorf("获取服务配置失败: %v", err)
+	}
+
+	outputStr := string(output)
+	details["配置"] = "已配置"
+
+	// 获取服务状态信息
+	statusCmd := exec.Command("sc", "query", serviceName)
+	statusOutput, err := statusCmd.CombinedOutput()
+	if err != nil {
+		details["状态"] = "未安装"
+		return details, nil
+	}
+
+	statusStr := string(statusOutput)
+
+	if contains(statusStr, "RUNNING") {
+		details["状态"] = "运行中"
+	} else if contains(statusStr, "STOPPED") {
+		details["状态"] = "已停止"
+	} else {
+		details["状态"] = "其他状态"
+	}
+
+	// 获取启动类型
+	if contains(outputStr, "AUTO_START") {
+		details["启动类型"] = "自动"
+	} else if contains(outputStr, "DEMAND_START") {
+		details["启动类型"] = "手动"
+	} else if contains(outputStr, "DISABLED") {
+		details["启动类型"] = "禁用"
+	} else {
+		details["启动类型"] = "未知"
+	}
+
+	return details, nil
+}
+
+// contains 检查字符串是否包含子串（简单实现）
+func contains(s, substr string) bool {
+	return len(s) >= len(substr) && findSubstring(s, substr)
+}
+
+func findSubstring(s, substr string) bool {
+	for i := 0; i <= len(s)-len(substr); i++ {
+		if s[i:i+len(substr)] == substr {
+			return true
+		}
+	}
+	return false
 }
 
 // installService 安装当前程序为 Windows 服务。

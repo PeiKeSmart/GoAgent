@@ -94,28 +94,45 @@ chmod +x build-gateway.sh
    ```
    成功输出：`服务安装成功！`
 
-3. **启动服务**
+3. **检查服务状态**
+   ```cmd
+   .\GoAgent.exe status
+   ```
+   显示详细的服务状态信息，包括运行状态、配置信息等
+
+4. **启动服务**
    ```cmd
    .\GoAgent.exe start
    ```
    成功输出：`服务启动成功！`
 
-4. **停止服务**
+5. **停止服务**
    ```cmd
    .\GoAgent.exe stop
    ```
    成功输出：`服务停止成功！`
 
-5. **卸载服务**
+6. **卸载服务**
    ```cmd
    .\GoAgent.exe uninstall
    ```
    成功输出：`服务卸载成功！`
 
-6. **直接运行（前台模式）**
+7. **查看帮助信息**
+   ```cmd
+   .\GoAgent.exe help
+   ```
+
+8. **直接运行（前台模式）**
    ```cmd
    .\GoAgent.exe
    ```
+   会自动显示服务状态，然后进入前台运行模式
+
+**注意**: 服务名称为 "DHAgent"，可以通过以下方式验证：
+```cmd
+sc query DHAgent
+```
 
 #### Linux 系统
 
@@ -144,7 +161,13 @@ chmod +x build-gateway.sh
    ```
    成功输出：`服务安装成功！`
 
-2. **启动服务**
+2. **检查服务状态**
+   ```bash
+   ./goagent status
+   ```
+   显示详细的服务状态信息，包括运行状态、配置信息等
+
+3. **启动服务**
    ```bash
    ./goagent start  # 自动处理sudo
    # 或手动使用sudo：
@@ -154,12 +177,10 @@ chmod +x build-gateway.sh
    ```
    成功输出：`服务启动成功！`
 
-3. **停止服务**
+4. **停止服务**
    ```bash
    ./goagent stop   # 自动处理sudo
    # 或手动使用sudo：
-   sudo ./goagent stop
-   ```bash
    sudo ./goagent stop
    # 或使用 systemctl
    sudo systemctl stop goagent
