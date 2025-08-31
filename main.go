@@ -45,6 +45,13 @@ func init() {
 }
 
 func main() {
+	// 检查是否作为 Windows 服务运行
+	if isRunningAsService() {
+		// 作为 Windows 服务运行
+		runAsWindowsService(ServiceName, false)
+		return
+	}
+
 	// 检查命令行参数
 	if len(os.Args) > 1 {
 		operation := os.Args[1]
@@ -401,43 +408,33 @@ func handleMenuChoice(choice string) bool {
 		showServiceStatus()
 	case "2":
 		fmt.Println("\n正在卸载服务...")
-		if err := uninstallService(); err != nil {
-			fmt.Printf("❌ 卸载服务失败: %v\n", err)
-		} else {
-			fmt.Println("✅ 服务卸载成功！")
-		}
+		handlePrivilegedOperation("uninstall", func() error {
+			return uninstallService()
+		})
 	case "3":
 		fmt.Println("\n正在停止服务...")
-		if err := stopService(); err != nil {
-			fmt.Printf("❌ 停止服务失败: %v\n", err)
-		} else {
-			fmt.Println("✅ 服务停止成功！")
-		}
+		handlePrivilegedOperation("stop", func() error {
+			return stopService()
+		})
 	case "4":
 		fmt.Println("\n正在重启服务...")
-		if err := restartService(); err != nil {
-			fmt.Printf("❌ 重启服务失败: %v\n", err)
-		} else {
-			fmt.Println("✅ 服务重启成功！")
-		}
+		handlePrivilegedOperation("restart", func() error {
+			return restartService()
+		})
 	case "5":
 		fmt.Println("\n启动模拟运行模式...")
 		fmt.Println("按 Ctrl+C 停止运行")
 		startAgentService()
 	case "6":
 		fmt.Println("\n正在安装服务...")
-		if err := installService(); err != nil {
-			fmt.Printf("❌ 安装服务失败: %v\n", err)
-		} else {
-			fmt.Println("✅ 服务安装成功！")
-		}
+		handlePrivilegedOperation("install", func() error {
+			return installService()
+		})
 	case "7":
 		fmt.Println("\n正在启动服务...")
-		if err := startService(); err != nil {
-			fmt.Printf("❌ 启动服务失败: %v\n", err)
-		} else {
-			fmt.Println("✅ 服务启动成功！")
-		}
+		handlePrivilegedOperation("start", func() error {
+			return startService()
+		})
 	case "v", "V":
 		fmt.Println()
 		showVersion()
@@ -451,6 +448,41 @@ func handleMenuChoice(choice string) bool {
 		fmt.Printf("❌ 无效选择: %s\n", choice)
 	}
 	return true
+}
+
+// handlePrivilegedOperation 处理需要权限的操作
+func handlePrivilegedOperation(operation string, fn func() error) {
+	// 检查是否需要管理员权限
+	if IsElevationRequired(operation) {
+		if err := CheckAdminForServiceOperations(); err != nil {
+			fmt.Printf("❌ 操作失败: %v\n", err)
+			fmt.Println("💡 提示: 请以管理员身份重新启动程序")
+			fmt.Printf("💡 或者在管理员命令提示符中运行: %s %s\n", ExecutableName, operation)
+			return
+		}
+	}
+
+	// 执行操作
+	if err := fn(); err != nil {
+		fmt.Printf("❌ 操作失败: %v\n", err)
+	} else {
+		var successMsg string
+		switch operation {
+		case "install":
+			successMsg = "✅ 服务安装成功！"
+		case "uninstall":
+			successMsg = "✅ 服务卸载成功！"
+		case "start":
+			successMsg = "✅ 服务启动成功！"
+		case "stop":
+			successMsg = "✅ 服务停止成功！"
+		case "restart":
+			successMsg = "✅ 服务重启成功！"
+		default:
+			successMsg = "✅ 操作成功！"
+		}
+		fmt.Println(successMsg)
+	}
 }
 
 // isWindowsService 检查当前是否作为Windows服务运行
