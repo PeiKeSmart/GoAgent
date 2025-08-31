@@ -1,0 +1,39 @@
+# GoAgent 配置示例文件
+# 这是一个示例配置文件，展示如何为 GoAgent 添加配置功能
+
+# 服务设置
+[service]
+# 服务运行间隔（秒）
+interval = 30
+# 日志级别 (debug, info, warn, error)
+log_level = info
+# 是否启用详细日志
+verbose = false
+
+# 网络设置
+[network]
+# 监听端口（如果需要 HTTP 服务）
+port = 8080
+# 监听地址
+host = 0.0.0.0
+
+# 自定义任务设置
+[tasks]
+# 是否启用任务调度
+enabled = true
+# 任务执行间隔（分钟）
+task_interval = 5
+
+# 数据库设置（如果需要）
+[database]
+# 数据库类型
+type = sqlite
+# 数据库文件路径
+path = ./data/goagent.db
+
+# 安全设置
+[security]
+# API 密钥（如果提供 API 服务）
+api_key = your-secret-key-here
+# 是否启用 HTTPS
+enable_https = false
