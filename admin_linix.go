@@ -101,6 +101,7 @@ func IsElevationRequired(operation string) bool {
 		"uninstall": true,
 		"start":     true,
 		"stop":      true,
+		"restart":   true,
 	}
 
 	return elevationRequiredOps[operation]

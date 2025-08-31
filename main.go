@@ -1,11 +1,13 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"log"
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"syscall"
 	"time"
 )
@@ -48,6 +50,24 @@ func main() {
 	if len(os.Args) > 1 {
 		operation := os.Args[1]
 
+		// 处理带 - 前缀的命令
+		switch operation {
+		case "-status":
+			operation = "status"
+		case "-u":
+			operation = "uninstall"
+		case "-stop":
+			operation = "stop"
+		case "-restart":
+			operation = "restart"
+		case "-run":
+			operation = "run"
+		case "-v", "--version":
+			operation = "version"
+		case "-h", "--help":
+			operation = "help"
+		}
+
 		// 检查是否需要管理员权限
 		if IsElevationRequired(operation) {
 			if err := CheckAdminForServiceOperations(); err != nil {
@@ -89,6 +109,16 @@ func main() {
 			}
 			fmt.Println("服务停止成功！")
 			return
+		case "restart":
+			if err := restartService(); err != nil {
+				log.Fatalf("重启服务失败: %v", err)
+			}
+			fmt.Println("服务重启成功！")
+			return
+		case "run":
+			fmt.Println("模拟运行模式启动...")
+			runMainProgram()
+			return
 		case "check-admin":
 			if IsRunningAsAdmin() {
 				fmt.Println("当前程序正以管理员权限运行")
@@ -99,10 +129,10 @@ func main() {
 		case "status":
 			showServiceStatus()
 			return
-		case "version", "-v", "--version":
+		case "version":
 			showVersion()
 			return
-		case "help", "-h", "--help":
+		case "help":
 			showHelp()
 			return
 		default:
@@ -112,17 +142,8 @@ func main() {
 		}
 	}
 
-	// 在主程序启动时显示服务状态
-	fmt.Println("GoAgent 服务管理工具")
-	fmt.Println("===================")
-	showServiceStatus()
-	fmt.Println()
-	fmt.Printf("💡 使用 '%s help' 查看所有可用命令\n", ExecutableName)
-	fmt.Println("💡 按 Ctrl+C 停止程序")
-	fmt.Println()
-
-	// 运行主程序
-	runMainProgram()
+	// 无参数启动时显示交互式菜单
+	showInteractiveMenu()
 }
 
 func runMainProgram() {
@@ -137,12 +158,16 @@ func runMainProgram() {
 		exePath = ExecutableName
 	}
 
-	// 根据不同平台显示不同的状态信息
-	if isWindowsService() {
+	// 检查真实的服务状态
+	serviceStatus, err := getServiceStatus()
+	if err != nil {
+		fmt.Println("状态：程序直接运行中（非服务模式）")
+	} else if serviceStatus == "运行中" {
 		fmt.Println("状态：Windows 服务运行中")
 	} else {
-		fmt.Println("状态：程序运行中")
+		fmt.Println("状态：程序直接运行中（非服务模式）")
 	}
+
 	fmt.Printf("路径：%s\n", exePath)
 	fmt.Println("========================================")
 
@@ -210,25 +235,34 @@ func showServiceStatus() {
 
 	fmt.Printf("%s 服务状态: %s\n", statusIcon, status)
 
-	// 获取详细信息
-	details, err := getServiceDetails()
-	if err != nil {
-		fmt.Printf("⚠️  获取详细信息失败: %v\n", err)
-		return
-	}
-
-	// 显示详细信息
-	for key, value := range details {
-		fmt.Printf("   %s: %s\n", key, value)
+	// 只有在服务存在时才获取详细信息
+	if status != "未安装" {
+		// 获取详细信息
+		details, err := getServiceDetails()
+		if err != nil {
+			fmt.Printf("⚠️  获取详细信息失败: %v\n", err)
+		} else {
+			// 显示详细信息
+			for key, value := range details {
+				fmt.Printf("   %s: %s\n", key, value)
+			}
+		}
 	}
 
 	// 显示可用的操作提示
+	fmt.Println()
 	if status == "未安装" {
-		fmt.Println("\n💡 提示: 使用 'install' 命令安装服务")
+		fmt.Println("💡 建议操作:")
+		fmt.Println("   - 使用菜单选项 6 或命令 'install' 安装服务")
+		fmt.Println("   - 使用菜单选项 5 或命令 '-run' 进行模拟运行")
 	} else if status == "已停止" {
-		fmt.Println("\n💡 提示: 使用 'start' 命令启动服务")
+		fmt.Println("💡 建议操作:")
+		fmt.Println("   - 使用菜单选项 7 或命令 'start' 启动服务")
+		fmt.Println("   - 使用菜单选项 2 或命令 'uninstall' 卸载服务")
 	} else if status == "运行中" {
-		fmt.Println("\n💡 提示: 服务正在正常运行")
+		fmt.Println("💡 可用操作:")
+		fmt.Println("   - 使用菜单选项 3 或命令 'stop' 停止服务")
+		fmt.Println("   - 使用菜单选项 4 或命令 'restart' 重启服务")
 	}
 }
 
@@ -240,24 +274,31 @@ func showHelp() {
 	fmt.Printf("用法: %s [命令]\n", ExecutableName)
 	fmt.Println()
 	fmt.Println("可用命令:")
-	fmt.Println("  install     安装服务到系统")
-	fmt.Println("  uninstall   从系统卸载服务")
-	fmt.Println("  start       启动服务")
-	fmt.Println("  stop        停止服务")
-	fmt.Println("  status      显示服务状态信息")
-	fmt.Println("  version     显示版本信息")
-	fmt.Println("  check-admin 检查当前权限状态")
-	fmt.Println("  help        显示此帮助信息")
+	fmt.Println("  install           安装服务到系统")
+	fmt.Println("  uninstall (-u)    从系统卸载服务")
+	fmt.Println("  start             启动服务")
+	fmt.Println("  stop (-stop)      停止服务")
+	fmt.Println("  restart (-restart) 重启服务")
+	fmt.Println("  status (-status)  显示服务状态信息")
+	fmt.Println("  run (-run)        模拟运行模式（非服务）")
+	fmt.Println("  version (-v)      显示版本信息")
+	fmt.Println("  check-admin       检查当前权限状态")
+	fmt.Println("  help (-h)         显示此帮助信息")
 	fmt.Println()
 	fmt.Println("示例:")
-	fmt.Printf("  %s install    # 安装服务\n", ExecutableName)
-	fmt.Printf("  %s status     # 查看服务状态\n", ExecutableName)
-	fmt.Printf("  %s start      # 启动服务\n", ExecutableName)
+	fmt.Printf("  %s install       # 安装服务\n", ExecutableName)
+	fmt.Printf("  %s -status       # 查看服务状态\n", ExecutableName)
+	fmt.Printf("  %s start         # 启动服务\n", ExecutableName)
+	fmt.Printf("  %s -run          # 模拟运行模式\n", ExecutableName)
+	fmt.Println()
+	fmt.Println("交互模式:")
+	fmt.Printf("  %s               # 启动交互式菜单\n", ExecutableName)
 	fmt.Println()
 	fmt.Println("注意:")
 	fmt.Println("  - 服务操作需要管理员权限，程序会自动申请")
-	fmt.Println("  - 直接运行程序会显示状态并进入服务模式")
-	fmt.Println("  - 按 Ctrl+C 可以优雅地停止服务")
+	fmt.Println("  - 直接运行程序会进入交互式菜单")
+	fmt.Println("  - 使用 -run 参数可以在非服务模式下运行")
+	fmt.Println("  - 按 Ctrl+C 可以优雅地停止程序")
 }
 
 // showVersion 显示版本信息
@@ -276,9 +317,144 @@ func showVersion() {
 	fmt.Printf("可执行文件: %s\n", ExecutableName)
 }
 
+// showInteractiveMenu 显示交互式菜单
+func showInteractiveMenu() {
+	// 显示服务基本信息
+	fmt.Println("========================================")
+	fmt.Printf("服务：星尘代理(%s)\n", ServiceName)
+	fmt.Printf("描述：%s\n", ServiceDescription)
+
+	// 获取当前执行路径
+	exePath, err := os.Executable()
+	if err != nil {
+		exePath = ExecutableName
+	}
+
+	// 检查真实的服务状态
+	serviceStatus, err := getServiceStatus()
+	if err != nil {
+		fmt.Println("状态：程序直接运行中（非服务模式）")
+	} else if serviceStatus == "运行中" {
+		fmt.Println("状态：Windows 服务运行中")
+	} else {
+		fmt.Println("状态：程序直接运行中（非服务模式）")
+	}
+
+	fmt.Printf("路径：%s\n", exePath)
+	fmt.Println("========================================")
+
+	// 显示版本信息
+	fmt.Printf("%s       版本：%s   构建时间：%s\n", AppName, Version, BuildTime)
+	if GitCommit != "unknown" {
+		fmt.Printf("Git提交：%s   分支：%s   Go版本：%s\n", GitCommit, GitBranch, GoVersion)
+	}
+	fmt.Println()
+
+	fmt.Println("GoAgent 服务管理工具")
+	fmt.Println("===================")
+	showServiceStatus()
+	fmt.Println()
+
+	for {
+		showMenu()
+		choice := getUserInput()
+
+		if !handleMenuChoice(choice) {
+			break
+		}
+
+		fmt.Println()
+	}
+}
+
+// showMenu 显示菜单选项
+func showMenu() {
+	fmt.Println("序号 功能名称   命令行参数")
+	fmt.Println(" 1、 显示状态   -status")
+	fmt.Println(" 2、 卸载服务   -u")
+	fmt.Println(" 3、 停止服务   -stop")
+	fmt.Println(" 4、 重启服务   -restart")
+	fmt.Println(" 5、 模拟运行   -run")
+	fmt.Println(" 6、 安装服务   install")
+	fmt.Println(" 7、 启动服务   start")
+	fmt.Println(" v、 版本信息   version")
+	fmt.Println(" h、 帮助信息   help")
+	fmt.Println(" 0、 退出")
+	fmt.Print("请选择操作 (输入序号或字母): ")
+}
+
+// getUserInput 获取用户输入
+func getUserInput() string {
+	scanner := bufio.NewScanner(os.Stdin)
+	if scanner.Scan() {
+		return strings.TrimSpace(scanner.Text())
+	}
+	return ""
+}
+
+// handleMenuChoice 处理菜单选择
+func handleMenuChoice(choice string) bool {
+	switch choice {
+	case "1":
+		fmt.Println("\n正在显示服务状态...")
+		showServiceStatus()
+	case "2":
+		fmt.Println("\n正在卸载服务...")
+		if err := uninstallService(); err != nil {
+			fmt.Printf("❌ 卸载服务失败: %v\n", err)
+		} else {
+			fmt.Println("✅ 服务卸载成功！")
+		}
+	case "3":
+		fmt.Println("\n正在停止服务...")
+		if err := stopService(); err != nil {
+			fmt.Printf("❌ 停止服务失败: %v\n", err)
+		} else {
+			fmt.Println("✅ 服务停止成功！")
+		}
+	case "4":
+		fmt.Println("\n正在重启服务...")
+		if err := restartService(); err != nil {
+			fmt.Printf("❌ 重启服务失败: %v\n", err)
+		} else {
+			fmt.Println("✅ 服务重启成功！")
+		}
+	case "5":
+		fmt.Println("\n启动模拟运行模式...")
+		fmt.Println("按 Ctrl+C 停止运行")
+		runMainProgram()
+	case "6":
+		fmt.Println("\n正在安装服务...")
+		if err := installService(); err != nil {
+			fmt.Printf("❌ 安装服务失败: %v\n", err)
+		} else {
+			fmt.Println("✅ 服务安装成功！")
+		}
+	case "7":
+		fmt.Println("\n正在启动服务...")
+		if err := startService(); err != nil {
+			fmt.Printf("❌ 启动服务失败: %v\n", err)
+		} else {
+			fmt.Println("✅ 服务启动成功！")
+		}
+	case "v", "V":
+		fmt.Println()
+		showVersion()
+	case "h", "H":
+		fmt.Println()
+		showHelp()
+	case "0":
+		fmt.Println("退出程序...")
+		return false
+	default:
+		fmt.Printf("❌ 无效选择: %s\n", choice)
+	}
+	return true
+}
+
 // isWindowsService 检查当前是否作为Windows服务运行
 func isWindowsService() bool {
-	// 简单的检查方法：在Windows平台下，检查是否存在Windows特有的环境
-	// 这里可以根据实际需要进行更精确的判断
-	return os.Getenv("USERPROFILE") != "" && os.Getenv("SYSTEMROOT") != ""
+	// 更准确的检查方法：检查是否有控制台窗口
+	// 如果没有控制台窗口且没有用户交互环境，通常表示作为服务运行
+	return os.Getenv("USERNAME") == "" || os.Getenv("SESSIONNAME") == ""
 }

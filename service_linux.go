@@ -105,6 +105,15 @@ func stopLinuxService() error {
 	return nil
 }
 
+func restartLinuxService() error {
+	cmd := exec.Command("systemctl", "restart", serviceName)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("重启服务失败: %v, 输出: %s", err, output)
+	}
+	return nil
+}
+
 // getServiceStatus 获取Linux服务状态
 func getServiceStatus() (string, error) {
 	cmd := exec.Command("systemctl", "is-active", serviceName)
@@ -204,4 +213,8 @@ func startService() error {
 
 func stopService() error {
 	return stopLinuxService()
+}
+
+func restartService() error {
+	return restartLinuxService()
 }

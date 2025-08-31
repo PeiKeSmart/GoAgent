@@ -189,3 +189,23 @@ func startService() error {
 func stopService() error {
 	return stopWindowsService()
 }
+
+// restartService 重启当前服务
+// 返回：
+//
+//	error - 如果重启服务过程中发生错误，则返回错误信息；否则返回 nil。
+func restartService() error {
+	// 先停止服务
+	if err := stopWindowsService(); err != nil {
+		// 如果停止失败但不是因为服务未运行，则返回错误
+		if !contains(err.Error(), "1062") { // 服务未启动的错误代码
+			return fmt.Errorf("停止服务失败: %v", err)
+		}
+	}
+
+	// 等待一段时间确保服务完全停止
+	// time.Sleep(2 * time.Second)
+
+	// 启动服务
+	return startWindowsService()
+}
