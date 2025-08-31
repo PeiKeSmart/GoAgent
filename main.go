@@ -10,11 +10,14 @@ import (
 	"time"
 )
 
-// 版本信息
-const (
-	AppName     = "DHAgent"
-	Version     = "4.13.2025.0831-beta0001"
-	ReleaseDate = "2025-08-31 16:55:00"
+// 版本信息 - 支持编译时动态注入
+var (
+	AppName   = "DHAgent" // 应用名称
+	Version   = "dev"     // 版本号，编译时通过 -ldflags 注入
+	BuildTime = "unknown" // 构建时间，编译时自动生成
+	GitCommit = "unknown" // Git提交哈希，编译时获取
+	GitBranch = "unknown" // Git分支，编译时获取
+	GoVersion = "unknown" // Go版本，编译时获取
 )
 
 // 服务配置
@@ -96,6 +99,9 @@ func main() {
 		case "status":
 			showServiceStatus()
 			return
+		case "version", "-v", "--version":
+			showVersion()
+			return
 		case "help", "-h", "--help":
 			showHelp()
 			return
@@ -141,7 +147,10 @@ func runMainProgram() {
 	fmt.Println("========================================")
 
 	// 显示版本信息
-	fmt.Printf("%s       版本：%s   发布：%s\n", AppName, Version, ReleaseDate)
+	fmt.Printf("%s       版本：%s   构建时间：%s\n", AppName, Version, BuildTime)
+	if GitCommit != "unknown" {
+		fmt.Printf("Git提交：%s   分支：%s   Go版本：%s\n", GitCommit, GitBranch, GoVersion)
+	}
 	fmt.Println()
 
 	log.Println("GoAgent 服务已启动")
@@ -236,6 +245,7 @@ func showHelp() {
 	fmt.Println("  start       启动服务")
 	fmt.Println("  stop        停止服务")
 	fmt.Println("  status      显示服务状态信息")
+	fmt.Println("  version     显示版本信息")
 	fmt.Println("  check-admin 检查当前权限状态")
 	fmt.Println("  help        显示此帮助信息")
 	fmt.Println()
@@ -248,6 +258,22 @@ func showHelp() {
 	fmt.Println("  - 服务操作需要管理员权限，程序会自动申请")
 	fmt.Println("  - 直接运行程序会显示状态并进入服务模式")
 	fmt.Println("  - 按 Ctrl+C 可以优雅地停止服务")
+}
+
+// showVersion 显示版本信息
+func showVersion() {
+	fmt.Printf("%s v%s\n", AppName, Version)
+	fmt.Printf("构建时间: %s\n", BuildTime)
+
+	if GitCommit != "unknown" {
+		fmt.Printf("Git提交: %s (%s)\n", GitCommit, GitBranch)
+	}
+
+	if GoVersion != "unknown" {
+		fmt.Printf("Go版本: %s\n", GoVersion)
+	}
+
+	fmt.Printf("可执行文件: %s\n", ExecutableName)
 }
 
 // isWindowsService 检查当前是否作为Windows服务运行

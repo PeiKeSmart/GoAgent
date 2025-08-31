@@ -5,8 +5,10 @@
 ## 🔧 脚本列表
 
 ### 构建脚本
-- **[build.bat](build.bat)** - Windows 平台构建脚本
-- **[build.sh](build.sh)** - Linux 平台构建脚本  
+- **[build.bat](build.bat)** - Windows 平台基础构建脚本
+- **[build.sh](build.sh)** - Linux 平台基础构建脚本  
+- **[build-version.bat](build-version.bat)** - 🆕 Windows 动态版本注入构建脚本
+- **[build-version.sh](build-version.sh)** - 🆕 Linux 动态版本注入构建脚本
 - **[build-gateway.sh](build-gateway.sh)** - 边缘网关设备构建脚本
 
 ### 部署脚本
@@ -22,8 +24,11 @@
 ### Windows 用户
 
 ```cmd
-# 构建项目
+# 基础构建
 scripts\build.bat
+
+# 🆕 动态版本构建（推荐）
+scripts\build-version.bat windows "1.0.0"
 
 # 测试管理员权限
 scripts\test-admin.bat
@@ -35,8 +40,11 @@ scripts\test-admin.bat
 # 给脚本执行权限
 chmod +x scripts/*.sh
 
-# 构建项目
+# 基础构建
 ./scripts/build.sh
+
+# 🆕 动态版本构建（推荐）
+./scripts/build-version.sh linux "1.0.0"
 
 # 测试 root 权限
 sudo ./scripts/test-admin-linux.sh
