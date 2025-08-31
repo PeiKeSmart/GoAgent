@@ -89,6 +89,26 @@ func main() {
 }
 
 func runMainProgram() {
+	// 显示服务启动信息
+	fmt.Println("========================================")
+	fmt.Println("服务：星尘代理(DHAgent)")
+	fmt.Println("描述：星尘，分布式资源调度，部署于每一个节点，连接服务端，支持节点监控、远程发布。")
+
+	// 获取当前执行路径
+	exePath, err := os.Executable()
+	if err != nil {
+		exePath = "GoAgent.exe"
+	}
+
+	// 根据不同平台显示不同的状态信息
+	if isWindowsService() {
+		fmt.Println("状态：Windows 服务运行中")
+	} else {
+		fmt.Println("状态：程序运行中")
+	}
+	fmt.Printf("路径：%s\n", exePath)
+	fmt.Println("========================================")
+
 	log.Println("GoAgent 服务已启动")
 
 	// 创建信号通道来处理优雅关闭
@@ -193,4 +213,11 @@ func showHelp() {
 	fmt.Println("  - 服务操作需要管理员权限，程序会自动申请")
 	fmt.Println("  - 直接运行程序会显示状态并进入服务模式")
 	fmt.Println("  - 按 Ctrl+C 可以优雅地停止服务")
+}
+
+// isWindowsService 检查当前是否作为Windows服务运行
+func isWindowsService() bool {
+	// 简单的检查方法：在Windows平台下，检查是否存在Windows特有的环境
+	// 这里可以根据实际需要进行更精确的判断
+	return os.Getenv("USERPROFILE") != "" && os.Getenv("SYSTEMROOT") != ""
 }
