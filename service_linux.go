@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	serviceName = "DHAgent"
+	serviceName = ServiceName
 	serviceFile = "/etc/systemd/system/dhagent.service"
 )
 
@@ -30,7 +30,7 @@ func installLinuxService() error {
 
 	// 创建 systemd 服务文件内容
 	serviceContent := fmt.Sprintf(`[Unit]
-Description=DH Agent Service
+Description=%s
 After=network.target
 
 [Service]
@@ -44,7 +44,7 @@ StandardError=journal
 
 [Install]
 WantedBy=multi-user.target
-`, absPath)
+`, ServiceDisplayName, absPath)
 
 	// 写入服务文件
 	if err := os.WriteFile(serviceFile, []byte(serviceContent), 0644); err != nil {

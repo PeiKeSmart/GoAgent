@@ -10,9 +10,9 @@ import (
 )
 
 const (
-	serviceName        = "DHAgent"
-	serviceDisplayName = "DH Agent Service"
-	serviceDescription = "DH Agent 自启动服务"
+	serviceName        = ServiceName
+	serviceDisplayName = ServiceDisplayName
+	serviceDescription = ServiceDescription
 )
 
 func installWindowsService() error {

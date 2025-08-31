@@ -5,9 +5,40 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 	"time"
 )
+
+// 版本信息
+const (
+	AppName     = "DHAgent"
+	Version     = "4.13.2025.0831-beta0001"
+	ReleaseDate = "2025-08-31 16:55:00"
+)
+
+// 服务配置
+const (
+	ServiceName        = "DHAgent"
+	ServiceDisplayName = "星尘代理服务"
+	ServiceDescription = "星尘，分布式资源调度，部署于每一个节点，连接服务端，支持节点监控、远程发布。"
+)
+
+// 全局变量
+var (
+	ExecutableName string // 可执行文件名（动态获取）
+)
+
+// 初始化函数
+func init() {
+	// 获取可执行文件名
+	if exePath, err := os.Executable(); err == nil {
+		ExecutableName = filepath.Base(exePath)
+	} else {
+		// 如果获取失败，使用默认名称
+		ExecutableName = "GoAgent.exe"
+	}
+}
 
 func main() {
 	// 检查命令行参数
@@ -80,7 +111,7 @@ func main() {
 	fmt.Println("===================")
 	showServiceStatus()
 	fmt.Println()
-	fmt.Println("💡 使用 'GoAgent.exe help' 查看所有可用命令")
+	fmt.Printf("💡 使用 '%s help' 查看所有可用命令\n", ExecutableName)
 	fmt.Println("💡 按 Ctrl+C 停止程序")
 	fmt.Println()
 
@@ -91,13 +122,13 @@ func main() {
 func runMainProgram() {
 	// 显示服务启动信息
 	fmt.Println("========================================")
-	fmt.Println("服务：星尘代理(DHAgent)")
-	fmt.Println("描述：星尘，分布式资源调度，部署于每一个节点，连接服务端，支持节点监控、远程发布。")
+	fmt.Printf("服务：星尘代理(%s)\n", ServiceName)
+	fmt.Printf("描述：%s\n", ServiceDescription)
 
 	// 获取当前执行路径
 	exePath, err := os.Executable()
 	if err != nil {
-		exePath = "GoAgent.exe"
+		exePath = ExecutableName
 	}
 
 	// 根据不同平台显示不同的状态信息
@@ -108,6 +139,10 @@ func runMainProgram() {
 	}
 	fmt.Printf("路径：%s\n", exePath)
 	fmt.Println("========================================")
+
+	// 显示版本信息
+	fmt.Printf("%s       版本：%s   发布：%s\n", AppName, Version, ReleaseDate)
+	fmt.Println()
 
 	log.Println("GoAgent 服务已启动")
 
@@ -193,7 +228,7 @@ func showHelp() {
 	fmt.Println("GoAgent 服务管理工具")
 	fmt.Println("===================")
 	fmt.Println()
-	fmt.Println("用法: GoAgent.exe [命令]")
+	fmt.Printf("用法: %s [命令]\n", ExecutableName)
 	fmt.Println()
 	fmt.Println("可用命令:")
 	fmt.Println("  install     安装服务到系统")
@@ -205,9 +240,9 @@ func showHelp() {
 	fmt.Println("  help        显示此帮助信息")
 	fmt.Println()
 	fmt.Println("示例:")
-	fmt.Println("  GoAgent.exe install    # 安装服务")
-	fmt.Println("  GoAgent.exe status     # 查看服务状态")
-	fmt.Println("  GoAgent.exe start      # 启动服务")
+	fmt.Printf("  %s install    # 安装服务\n", ExecutableName)
+	fmt.Printf("  %s status     # 查看服务状态\n", ExecutableName)
+	fmt.Printf("  %s start      # 启动服务\n", ExecutableName)
 	fmt.Println()
 	fmt.Println("注意:")
 	fmt.Println("  - 服务操作需要管理员权限，程序会自动申请")
