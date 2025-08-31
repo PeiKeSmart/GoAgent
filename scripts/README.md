@@ -10,19 +10,12 @@
 - **[get-version.bat](get-version.bat)** - Windows 版本号生成脚本
 - **[get-version.sh](get-version.sh)** - Linux 版本号生成脚本
 
-### 📦 基础构建脚本
-- **[build.bat](build.bat)** - Windows 平台基础构建脚本
-- **[build.sh](build.sh)** - Linux 平台基础构建脚本  
-- **[build-gateway.sh](build-gateway.sh)** - 边缘网关设备构建脚本
+### 📦 专用构建脚本
+- **[build-gateway.sh](build-gateway.sh)** - 边缘网关设备多架构构建脚本
 
 ### 🚀 部署脚本
-- **[deploy-batch.sh](deploy-batch.sh)** - 批量部署到多个设备
+- **[deploy-batch.sh](deploy-batch.sh)** - 批量部署到多个边缘设备
 - **[check-deployment.sh](check-deployment.sh)** - 检查部署状态
-
-### 🧪 测试脚本
-- **[test-admin.bat](test-admin.bat)** - Windows 管理员权限测试
-- **[test-admin-linux.sh](test-admin-linux.sh)** - Linux root 权限测试
-- **[test-version.bat](test-version.bat)** - 版本管理系统功能测试
 
 ## 🚀 使用说明
 
@@ -44,8 +37,9 @@ set AUTO_TAG=1
 # 获取版本号（不构建）
 .\scripts\get-version.bat 4.13
 
-# 测试版本管理系统
-.\scripts\test-version.bat
+# 验证功能（直接使用）
+.\GoAgent.exe version
+.\GoAgent.exe check-admin
 ```
 
 **Linux 用户**
@@ -66,43 +60,49 @@ export AUTO_TAG=1
 
 # 获取版本号（不构建）
 ./scripts/get-version.sh 4.13
+
+# 验证功能（直接使用）
+./goagent version
+./goagent check-admin
 ```
 
-### 📦 基础构建（传统方式）
+### 📦 基本构建（传统方式）
 
 **Windows 用户**
 
 ```cmd
-# 基础构建
-scripts\build.bat
-
 # 手动指定版本号构建（跳过智能版本管理）
 scripts\build-version.bat windows "1.0.0"
 
-# 测试管理员权限
-scripts\test-admin.bat
+# 验证服务功能（直接使用主程序）
+.\GoAgent.exe install   # 安装服务（自动申请权限）
+.\GoAgent.exe start     # 启动服务
+.\GoAgent.exe status    # 检查状态
+.\GoAgent.exe stop      # 停止服务
+.\GoAgent.exe uninstall # 卸载服务
 ```
 
 **Linux 用户**
 
 ```bash
-# 基础构建
-./scripts/build.sh
-
 # 手动指定版本号构建（跳过智能版本管理）
 ./scripts/build-version.sh linux "1.0.0"
 
-# 测试 root 权限
-sudo ./scripts/test-admin-linux.sh
+# 边缘网关多架构构建
+./scripts/build-gateway.sh arm64
 
-# 边缘网关构建
-./scripts/build-gateway.sh
-
-# 批量部署
+# 批量部署到边缘设备
 ./scripts/deploy-batch.sh
 
-# 检查部署
+# 检查部署状态
 ./scripts/check-deployment.sh
+
+# 验证服务功能（直接使用主程序）
+sudo ./goagent install   # 安装服务
+sudo ./goagent start     # 启动服务
+sudo ./goagent status    # 检查状态
+sudo ./goagent stop      # 停止服务
+sudo ./goagent uninstall # 卸载服务
 ```
 
 ## ⚠️ 注意事项

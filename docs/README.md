@@ -12,10 +12,6 @@
 ### 部署文档  
 - **[DEPLOYMENT-GATEWAY.md](DEPLOYMENT-GATEWAY.md)** - 边缘网关部署指南
 
-### 开发文档
-- **[BUILD-TAGS-SOLUTION.md](BUILD-TAGS-SOLUTION.md)** - 构建标签和跨平台编译解决方案
-- **[WINDOWS-vs-LINUX-PRIVILEGES.md](WINDOWS-vs-LINUX-PRIVILEGES.md)** - Windows与Linux权限管理对比
-
 ### 项目历史
 - **[CHANGELOG.md](CHANGELOG.md)** - 版本更新日志
 
