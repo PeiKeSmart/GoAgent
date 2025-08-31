@@ -35,6 +35,38 @@ GoAgent 是一个轻量级的系统服务管理工具，它可以作为系统服
   - Windows: 程序会自动检测并申请管理员权限
   - Linux: 需要 root 权限或使用 sudo 运行
 
+## 📁 项目结构
+
+```
+GoAgent/
+├── main.go                 # 主程序入口
+├── admin_windows.go        # Windows权限管理
+├── admin_unix.go          # Unix/Linux权限管理  
+├── service_windows.go     # Windows服务管理
+├── service_linux.go       # Linux服务管理
+├── go.mod                 # Go模块依赖
+├── README.md              # 项目说明文档
+├── LICENSE                # 开源许可证
+├── docs/                  # 📚 文档目录
+│   ├── ADMIN-PRIVILEGES.md        # 权限管理文档
+│   ├── BUILD-TAGS-SOLUTION.md     # 构建标签解决方案
+│   ├── CHANGELOG.md               # 更新日志
+│   ├── DEPLOYMENT-GATEWAY.md      # 网关部署文档
+│   ├── SERVICE-STATUS-FEATURE.md  # 服务状态功能
+│   └── WINDOWS-vs-LINUX-PRIVILEGES.md # 平台权限对比
+├── scripts/               # 🔧 脚本目录
+│   ├── build.bat                  # Windows构建脚本
+│   ├── build.sh                   # Linux构建脚本
+│   ├── build-gateway.sh           # 网关构建脚本
+│   ├── deploy-batch.sh            # 批量部署脚本
+│   ├── check-deployment.sh        # 部署检查脚本
+│   ├── test-admin.bat             # Windows权限测试
+│   └── test-admin-linux.sh        # Linux权限测试
+└── configs/               # ⚙️ 配置目录
+    ├── config.example.toml        # 配置文件示例
+    └── devices.example.conf       # 设备配置示例
+```
+
 ### 编译安装
 
 #### 1. 克隆项目
