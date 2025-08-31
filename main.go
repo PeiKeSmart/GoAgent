@@ -1,21 +1,70 @@
 package main
 
 import (
-  "fmt"
+	"fmt"
+	"log"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 )
 
-//TIP <p>To run your code, right-click the code and select <b>Run</b>.</p> <p>Alternatively, click
-// the <icon src="AllIcons.Actions.Execute"/> icon in the gutter and select the <b>Run</b> menu item from here.</p>
-
 func main() {
-  //TIP <p>Press <shortcut actionId="ShowIntentionActions"/> when your caret is at the underlined text
-  // to see how GoLand suggests fixing the warning.</p><p>Alternatively, if available, click the lightbulb to view possible fixes.</p>
-  s := "gopher"
-  fmt.Printf("Hello and welcome, %s!\n", s)
+	// 检查命令行参数
+	if len(os.Args) > 1 {
+		switch os.Args[1] {
+		case "install":
+			if err := installService(); err != nil {
+				log.Fatalf("安装服务失败: %v", err)
+			}
+			fmt.Println("服务安装成功！")
+			return
+		case "uninstall":
+			if err := uninstallService(); err != nil {
+				log.Fatalf("卸载服务失败: %v", err)
+			}
+			fmt.Println("服务卸载成功！")
+			return
+		case "start":
+			if err := startService(); err != nil {
+				log.Fatalf("启动服务失败: %v", err)
+			}
+			fmt.Println("服务启动成功！")
+			return
+		case "stop":
+			if err := stopService(); err != nil {
+				log.Fatalf("停止服务失败: %v", err)
+			}
+			fmt.Println("服务停止成功！")
+			return
+		}
+	}
 
-  for i := 1; i <= 5; i++ {
-	//TIP <p>To start your debugging session, right-click your code in the editor and select the Debug option.</p> <p>We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-	// for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.</p>
-	fmt.Println("i =", 100/i)
-  }
+	// 运行主程序
+	runMainProgram()
+}
+
+func runMainProgram() {
+	log.Println("GoAgent 服务已启动")
+
+	// 创建信号通道来处理优雅关闭
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+
+	// 主循环
+	ticker := time.NewTicker(30 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			// 这里执行您的主要业务逻辑
+			log.Println("GoAgent 正在运行...")
+			// 可以在这里添加您的具体功能
+
+		case sig := <-sigChan:
+			log.Printf("收到信号 %v，正在关闭服务...", sig)
+			return
+		}
+	}
 }
