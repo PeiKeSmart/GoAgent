@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"strings"
 	"syscall"
-	"time"
 )
 
 // 版本信息 - 支持编译时动态注入
@@ -117,7 +116,7 @@ func main() {
 			return
 		case "run":
 			fmt.Println("模拟运行模式启动...")
-			runMainProgram()
+			startAgentService()
 			return
 		case "check-admin":
 			if IsRunningAsAdmin() {
@@ -146,7 +145,8 @@ func main() {
 	showInteractiveMenu()
 }
 
-func runMainProgram() {
+// startAgentService 启动星尘代理服务 (业务逻辑层)
+func startAgentService() {
 	// 显示服务启动信息
 	fmt.Println("========================================")
 	fmt.Printf("服务：星尘代理(%s)\n", ServiceName)
@@ -178,31 +178,32 @@ func runMainProgram() {
 	}
 	fmt.Println()
 
-	log.Println("GoAgent 服务已启动")
+	// 创建并启动代理服务
+	agent := NewAgentService()
 
 	// 创建信号通道来处理优雅关闭
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
-	// 主循环
-	ticker := time.NewTicker(30 * time.Second)
-	defer ticker.Stop()
-
-	for {
-		select {
-		case <-ticker.C:
-			// 这里执行您的主要业务逻辑
-			log.Println("GoAgent 正在运行...")
-			// 可以在这里添加您的具体功能
-
-		case sig := <-sigChan:
-			log.Printf("收到信号 %v，正在关闭服务...", sig)
-			return
+	// 启动代理服务 (在goroutine中)
+	go func() {
+		if err := agent.Start(); err != nil {
+			log.Printf("代理服务启动失败: %v", err)
 		}
-	}
+	}()
+
+	// 等待停止信号
+	sig := <-sigChan
+	log.Printf("收到信号 %v，正在关闭服务...", sig)
+
+	// 优雅停止代理服务
+	agent.Stop()
 }
 
-// showServiceStatus 显示服务状态信息
+func runMainProgram() {
+	// 兼容性函数，现在直接调用代理服务
+	startAgentService()
+} // showServiceStatus 显示服务状态信息
 func showServiceStatus() {
 	fmt.Println("服务状态信息:")
 	fmt.Println("==============")
@@ -422,7 +423,7 @@ func handleMenuChoice(choice string) bool {
 	case "5":
 		fmt.Println("\n启动模拟运行模式...")
 		fmt.Println("按 Ctrl+C 停止运行")
-		runMainProgram()
+		startAgentService()
 	case "6":
 		fmt.Println("\n正在安装服务...")
 		if err := installService(); err != nil {
