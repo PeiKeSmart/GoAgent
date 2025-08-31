@@ -12,7 +12,25 @@ import (
 func main() {
 	// 检查命令行参数
 	if len(os.Args) > 1 {
-		switch os.Args[1] {
+		operation := os.Args[1]
+
+		// 检查是否需要管理员权限
+		if IsElevationRequired(operation) {
+			if err := CheckAdminForServiceOperations(); err != nil {
+				log.Printf("权限检查失败: %v", err)
+				fmt.Println("正在请求管理员权限...")
+
+				if err := RequestAdminPrivileges(); err != nil {
+					log.Fatalf("无法获取管理员权限: %v", err)
+				}
+
+				fmt.Println("已启动管理员权限进程，当前进程将退出。")
+				os.Exit(0)
+				return
+			}
+		}
+
+		switch operation {
 		case "install":
 			if err := installService(); err != nil {
 				log.Fatalf("安装服务失败: %v", err)
@@ -36,6 +54,13 @@ func main() {
 				log.Fatalf("停止服务失败: %v", err)
 			}
 			fmt.Println("服务停止成功！")
+			return
+		case "check-admin":
+			if IsRunningAsAdmin() {
+				fmt.Println("当前程序正以管理员权限运行")
+			} else {
+				fmt.Println("当前程序未以管理员权限运行")
+			}
 			return
 		}
 	}

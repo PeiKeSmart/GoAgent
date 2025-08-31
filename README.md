@@ -15,6 +15,7 @@ GoAgent 是一个轻量级的系统服务管理工具，它可以作为系统服
 - **自启动能力**：支持系统启动时自动运行
 - **优雅关闭**：响应系统信号，实现优雅的服务关闭
 - **日志记录**：内置日志系统，便于监控和调试
+- **权限管理**：自动检测和申请管理员权限，支持UAC自动提升
 - **轻量级设计**：单文件部署，无外部依赖，适合资源受限的边缘设备
 - **可扩展架构**：易于添加自定义业务逻辑
 
@@ -31,8 +32,8 @@ GoAgent 是一个轻量级的系统服务管理工具，它可以作为系统服
   - **MIPS**: 龙芯处理器、路由器设备
   - **OpenWrt**: 路由器和网关系统
 - **权限要求**: 
-  - Windows: 需要管理员权限
-  - Linux: 需要 root 权限
+  - Windows: 程序会自动检测并申请管理员权限
+  - Linux: 需要 root 权限或使用 sudo 运行
 
 ### 编译安装
 
@@ -73,7 +74,19 @@ chmod +x build-gateway.sh
 
 #### Windows 系统
 
-1. **以管理员身份运行命令提示符或 PowerShell**
+**权限管理说明**：
+- 程序会自动检测是否以管理员权限运行
+- 对于需要管理员权限的操作（安装、卸载、启动、停止服务），程序会自动弹出UAC对话框申请权限
+- 用户只需确认UAC提示即可，无需手动以管理员身份启动程序
+
+**检查当前权限状态**：
+```cmd
+.\GoAgent.exe check-admin
+```
+
+**服务管理操作**（自动申请权限）：
+
+1. **以管理员身份运行命令提示符或 PowerShell**（可选，程序会自动申请权限）
 
 2. **安装服务**
    ```cmd
@@ -106,23 +119,46 @@ chmod +x build-gateway.sh
 
 #### Linux 系统
 
-1. **使用 root 权限运行**
+**权限管理说明**：
+- 程序会自动检测是否以root权限运行
+- Linux没有类似Windows UAC的图形化权限申请机制
+- 程序会智能地尝试使用sudo自动重新启动
+- 如果自动sudo失败，会提供清晰的手动命令提示
 
-2. **安装服务**
+**检查当前权限状态**：
+```bash
+./goagent check-admin
+```
+
+**服务管理操作**（智能权限处理）：
+
+1. **安装服务**（推荐方式 - 程序会自动处理sudo）
+   ```bash
+   ./goagent install
+   # 程序会自动执行: sudo ./goagent install
+   ```
+   
+   或手动使用sudo：
    ```bash
    sudo ./goagent install
    ```
    成功输出：`服务安装成功！`
 
-3. **启动服务**
+2. **启动服务**
    ```bash
+   ./goagent start  # 自动处理sudo
+   # 或手动使用sudo：
    sudo ./goagent start
    # 或使用 systemctl
    sudo systemctl start goagent
    ```
    成功输出：`服务启动成功！`
 
-4. **停止服务**
+3. **停止服务**
+   ```bash
+   ./goagent stop   # 自动处理sudo
+   # 或手动使用sudo：
+   sudo ./goagent stop
    ```bash
    sudo ./goagent stop
    # 或使用 systemctl
