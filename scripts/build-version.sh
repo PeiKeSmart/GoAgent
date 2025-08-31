@@ -12,9 +12,9 @@ VERSION=${2}
 
 # 自动生成版本号如果未提供
 if [ -z "$VERSION" ]; then
-    DATE_STR=$(date +%Y%m%d)
-    TIME_STR=$(date +%H%M)
-    VERSION="4.13.${DATE_STR:2:6}.${TIME_STR}-auto"
+    # 调用版本管理脚本
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    VERSION=$("$SCRIPT_DIR/get-version.sh" "4.13")
 fi
 
 # 获取构建信息

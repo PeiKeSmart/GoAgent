@@ -4,46 +4,92 @@
 
 ## 🔧 脚本列表
 
-### 构建脚本
+### 🚀 智能构建脚本（推荐）
+- **[build-version.bat](build-version.bat)** - Windows 智能版本构建脚本
+- **[build-version.sh](build-version.sh)** - Linux 智能版本构建脚本
+- **[get-version.bat](get-version.bat)** - Windows 版本号生成脚本
+- **[get-version.sh](get-version.sh)** - Linux 版本号生成脚本
+
+### 📦 基础构建脚本
 - **[build.bat](build.bat)** - Windows 平台基础构建脚本
 - **[build.sh](build.sh)** - Linux 平台基础构建脚本  
-- **[build-version.bat](build-version.bat)** - 🆕 Windows 动态版本注入构建脚本
-- **[build-version.sh](build-version.sh)** - 🆕 Linux 动态版本注入构建脚本
 - **[build-gateway.sh](build-gateway.sh)** - 边缘网关设备构建脚本
 
-### 部署脚本
+### 🚀 部署脚本
 - **[deploy-batch.sh](deploy-batch.sh)** - 批量部署到多个设备
 - **[check-deployment.sh](check-deployment.sh)** - 检查部署状态
 
-### 测试脚本
+### 🧪 测试脚本
 - **[test-admin.bat](test-admin.bat)** - Windows 管理员权限测试
 - **[test-admin-linux.sh](test-admin-linux.sh)** - Linux root 权限测试
+- **[test-version.bat](test-version.bat)** - 版本管理系统功能测试
 
 ## 🚀 使用说明
 
-### Windows 用户
+### 🎯 推荐：智能版本构建
+
+**Windows 用户**
+
+```cmd
+# 自动版本构建（推荐使用）
+.\scripts\build-version.bat
+
+# 构建并自动创建Git标签  
+set AUTO_TAG=1
+.\scripts\build-version.bat
+
+# 指定平台构建
+.\scripts\build-version.bat windows
+
+# 获取版本号（不构建）
+.\scripts\get-version.bat 4.13
+
+# 测试版本管理系统
+.\scripts\test-version.bat
+```
+
+**Linux 用户**
+
+```bash
+# 给脚本执行权限
+chmod +x scripts/*.sh
+
+# 自动版本构建（推荐使用）
+./scripts/build-version.sh
+
+# 构建并自动创建Git标签
+export AUTO_TAG=1
+./scripts/build-version.sh
+
+# 指定平台构建
+./scripts/build-version.sh linux
+
+# 获取版本号（不构建）
+./scripts/get-version.sh 4.13
+```
+
+### 📦 基础构建（传统方式）
+
+**Windows 用户**
 
 ```cmd
 # 基础构建
 scripts\build.bat
 
-# 🆕 动态版本构建（推荐）
+# 手动指定版本号构建（跳过智能版本管理）
 scripts\build-version.bat windows "1.0.0"
 
 # 测试管理员权限
 scripts\test-admin.bat
 ```
 
-### Linux 用户
+**Linux 用户**
 
 ```bash
-# 给脚本执行权限
-chmod +x scripts/*.sh
-
 # 基础构建
 ./scripts/build.sh
 
-# 🆕 动态版本构建（推荐）
+# 手动指定版本号构建（跳过智能版本管理）
 ./scripts/build-version.sh linux "1.0.0"
 
 # 测试 root 权限

@@ -14,15 +14,10 @@ if "%1"=="" (
 )
 
 REM 获取版本信息
+set MAJOR_MINOR=4.13
 if "%2"=="" (
-    REM 自动生成版本号：主版本.年份.月日.时分
-    for /f "tokens=1-4 delims=/ " %%a in ('date /t') do (
-        set DATE_STR=%%c%%a%%b
-    )
-    for /f "tokens=1-2 delims=: " %%a in ('time /t') do (
-        set TIME_STR=%%a%%b
-    )
-    call set VERSION=4.13.%%DATE_STR:~2,6%%.%%TIME_STR%%-auto
+    REM 自动生成版本号，调用版本管理脚本
+    for /f "tokens=*" %%a in ('call "%~dp0get-version.bat" !MAJOR_MINOR!') do set VERSION=%%a
 ) else (
     set VERSION=%2
 )
@@ -114,4 +109,12 @@ if "%TARGET%"=="windows" (
 
 echo ========================================
 echo 🎉 构建完成！
+
+REM 自动创建Git标签（如果环境变量 AUTO_TAG=1）
+if "%AUTO_TAG%"=="1" (
+    echo 正在创建Git标签...
+    call "%~dp0get-version.bat" !MAJOR_MINOR! tag >nul
+    echo ✅ Git标签已创建: !VERSION!
+)
+
 echo ========================================

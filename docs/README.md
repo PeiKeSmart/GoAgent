@@ -7,6 +7,7 @@
 ### 功能文档
 - **[ADMIN-PRIVILEGES.md](ADMIN-PRIVILEGES.md)** - 权限管理系统详细说明
 - **[SERVICE-STATUS-FEATURE.md](SERVICE-STATUS-FEATURE.md)** - 服务状态查询功能
+- **[DYNAMIC-VERSION.md](DYNAMIC-VERSION.md)** - 🆕 动态版本管理系统指南
 
 ### 部署文档  
 - **[DEPLOYMENT-GATEWAY.md](DEPLOYMENT-GATEWAY.md)** - 边缘网关部署指南

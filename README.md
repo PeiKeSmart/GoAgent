@@ -77,6 +77,38 @@ cd GoAgent
 
 #### 2. 编译项目
 
+## 🔨 快速构建
+
+### 推荐：智能版本管理构建
+
+**Windows：**
+```cmd
+# 自动版本构建（推荐）
+.\scripts\build-version.bat
+
+# 构建并自动创建Git标签
+set AUTO_TAG=1
+.\scripts\build-version.bat
+```
+
+**Linux：**
+```bash
+# 自动版本构建（推荐）  
+./scripts/build-version.sh
+
+# 构建并自动创建Git标签
+export AUTO_TAG=1
+./scripts/build-version.sh
+```
+
+> 🎯 **智能版本系统特点**：
+> - 自动递增版本号：`4.13.2025.0831-beta0001`
+> - Git标签管理，跨机器版本同步
+> - 完整构建信息注入（版本、时间、Git信息等）
+> - 详细文档请查看：[动态版本管理系统指南](docs/DYNAMIC-VERSION.md)
+
+### 手动编译（传统方式）
+
 **Windows 编译：**
 ```bash
 # 编译 Windows 版本
@@ -95,11 +127,11 @@ go build -o goagent .
 GOOS=linux GOARCH=amd64 go build -o goagent .
 
 # 边缘网关多架构编译
-chmod +x build-gateway.sh
-./build-gateway.sh arm64    # ARM64设备 (树莓派4+)
-./build-gateway.sh armv7    # ARM32设备 (树莓派3)
-./build-gateway.sh amd64    # x86_64工控机
-./build-gateway.sh all      # 编译所有架构
+chmod +x scripts/build-gateway.sh
+./scripts/build-gateway.sh arm64    # ARM64设备 (树莓派4+)
+./scripts/build-gateway.sh armv7    # ARM32设备 (树莓派3)
+./scripts/build-gateway.sh amd64    # x86_64工控机
+./scripts/build-gateway.sh all      # 编译所有架构
 ```
 
 ### 使用教程
