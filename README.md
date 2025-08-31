@@ -9,11 +9,13 @@ GoAgent 是一个轻量级的系统服务管理工具，它可以作为系统服
 ## ✨ 功能特点
 
 - **跨平台支持**：同时支持 Windows 和 Linux 操作系统
+- **边缘网关兼容**：完美支持各种Linux边缘网关设备部署
+- **多架构编译**：支持 x86_64、ARM64、ARM32、MIPS 等多种硬件架构
 - **系统服务集成**：完整的系统服务安装、卸载、启动、停止功能
 - **自启动能力**：支持系统启动时自动运行
 - **优雅关闭**：响应系统信号，实现优雅的服务关闭
 - **日志记录**：内置日志系统，便于监控和调试
-- **轻量级设计**：单文件部署，无外部依赖
+- **轻量级设计**：单文件部署，无外部依赖，适合资源受限的边缘设备
 - **可扩展架构**：易于添加自定义业务逻辑
 
 ## 🚀 安装和使用
@@ -22,6 +24,12 @@ GoAgent 是一个轻量级的系统服务管理工具，它可以作为系统服
 
 - **Windows**: Windows 7/8/10/11 或 Windows Server 2012 及以上版本
 - **Linux**: 支持 systemd 的发行版（如 Ubuntu 16.04+, CentOS 7+, Debian 8+ 等）
+- **边缘网关**: 支持各种 Linux 边缘网关设备
+  - **x86_64**: 工控机、小型服务器
+  - **ARM64**: 树莓派4+、Jetson Nano、工业ARM网关  
+  - **ARM32**: 树莓派3、较老的ARM设备
+  - **MIPS**: 龙芯处理器、路由器设备
+  - **OpenWrt**: 路由器和网关系统
 - **权限要求**: 
   - Windows: 需要管理员权限
   - Linux: 需要 root 权限
@@ -52,6 +60,13 @@ go build -o goagent .
 
 # 交叉编译（在其他平台编译 Linux 版本）
 GOOS=linux GOARCH=amd64 go build -o goagent .
+
+# 边缘网关多架构编译
+chmod +x build-gateway.sh
+./build-gateway.sh arm64    # ARM64设备 (树莓派4+)
+./build-gateway.sh armv7    # ARM32设备 (树莓派3)
+./build-gateway.sh amd64    # x86_64工控机
+./build-gateway.sh all      # 编译所有架构
 ```
 
 ### 使用教程
@@ -125,6 +140,97 @@ GOOS=linux GOARCH=amd64 go build -o goagent .
    ```bash
    ./goagent
    ```
+
+#### 边缘网关设备部署
+
+GoAgent 支持在各种 Linux 边缘网关设备上部署，包括工控机、ARM开发板、路由器等。
+
+**快速部署流程：**
+
+1. **编译目标架构版本**
+   ```bash
+   # 赋予脚本执行权限
+   chmod +x build-gateway.sh
+   
+   # 根据目标设备选择架构
+   ./build-gateway.sh arm64    # ARM64设备 (树莓派4+、工业网关)
+   ./build-gateway.sh armv7    # ARM32设备 (树莓派3)
+   ./build-gateway.sh amd64    # x86_64工控机
+   ./build-gateway.sh all      # 编译所有架构
+   ```
+
+2. **部署到目标设备**
+
+**树莓派部署示例：**
+```bash
+# 1. 复制到树莓派
+scp dist/goagent-arm64 pi@192.168.1.100:/home/pi/goagent
+
+# 2. SSH连接并安装
+ssh pi@192.168.1.100
+chmod +x goagent
+sudo ./goagent install
+sudo ./goagent start
+
+# 3. 验证部署
+sudo systemctl status goagent
+```
+
+**工控机部署示例：**
+```bash
+# 1. 部署到工控机
+scp dist/goagent-amd64 admin@192.168.1.200:/opt/goagent
+
+# 2. SSH连接并安装
+ssh admin@192.168.1.200
+sudo chmod +x /opt/goagent
+sudo /opt/goagent install
+sudo systemctl start goagent
+```
+
+**OpenWrt路由器部署示例：**
+```bash
+# 1. 确定路由器架构 (通常是ARM或MIPS)
+./build-gateway.sh armv7  # 或 mips64le
+
+# 2. 通过SSH部署
+scp dist/goagent-armv7 root@192.168.1.1:/usr/bin/goagent
+ssh root@192.168.1.1
+chmod +x /usr/bin/goagent
+/usr/bin/goagent install
+```
+
+**批量部署工具：**
+
+项目提供了完整的批量部署工具，可以一次性部署到多个边缘网关设备：
+
+```bash
+# 1. 创建设备配置文件
+cp devices.example.conf devices.conf
+vim devices.conf  # 编辑设备信息
+
+# 2. 批量部署
+chmod +x deploy-batch.sh
+./deploy-batch.sh
+
+# 3. 检查部署状态
+chmod +x check-deployment.sh
+./check-deployment.sh
+
+# 4. 查看特定设备详情
+./check-deployment.sh -d '树莓派4,pi@192.168.1.100'
+```
+
+**设备配置文件格式：**
+```
+# devices.conf
+设备名称,SSH地址,架构,安装路径
+树莓派4,pi@192.168.1.100,arm64,/home/pi/goagent
+工控机1,admin@192.168.1.200,amd64,/opt/goagent
+路由器1,root@192.168.1.1,armv7,/usr/bin/goagent
+```
+
+> 📖 **完整的边缘网关部署指南和故障排除**请参考 [DEPLOYMENT-GATEWAY.md](DEPLOYMENT-GATEWAY.md)
 
 ### 验证服务状态
 
